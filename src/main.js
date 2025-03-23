@@ -9,12 +9,24 @@ import cautionIcon from "./img/caution-icon.svg";
 
 const form = document.querySelector(".form");
 const input = document.querySelector("input[name='search-text']");
+const loadMoreBtn = document.querySelector("#loadMoreBtn");
 
-form.addEventListener("submit", (event) => {
+let page = 1;
+let query = ''; 
+let totalHits = 0;
+let currentHits = 0;
+const perPage = 15;
+
+
+form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const query = input.value.trim();
-    if (query === "") {
+    query = input.value.trim();
+    if (!query) {
+        clearGallery();
+        loadMoreBtn.style.display = "none";
+        endMessage.style.display = "none";
+
         iziToast.show({
             title: "Caution",
             titleColor: "#fff", 
@@ -35,14 +47,16 @@ form.addEventListener("submit", (event) => {
         return;
     }
 
+    page = 1;
+    currentHits = 0;
+    totalHits = 0;
     clearGallery();
     showLoader();
+    loadMoreBtn.style.display = "none";
 
-    fetchData(query)
-        .then((images) => {
-            renderGallery(images);
-        })
-        .catch(() => {
+    try {
+        await loadImages(query, page);
+    } catch (error) {
             iziToast.show({              
                 message: "Something went wrong. Please try again later.",
                 messageColor: "#fafafb",
@@ -55,9 +69,88 @@ form.addEventListener("submit", (event) => {
                 progressBar: false,
                 position: "topRight",
             });
-        })
-        .finally(() => {
+        } finally {
             hideLoader();
             form.reset();
-        });
+        }
 });
+
+loadMoreBtn.addEventListener("click", async () => {
+    if (!query) return;
+
+    page++;
+    try {
+        await loadImages(query, page, false);
+    } catch (error) {
+        iziToast.show({
+            message: "Something went wrong. Please try again later.",
+            messageColor: "#fafafb",
+            messageSize: "16px",
+            messageLineHeight: "20px",
+            backgroundColor: "#ef4040",
+            iconUrl: warningIcon,
+            progressBar: false,
+            position: "topRight",
+        });
+    }
+});
+
+async function loadImages(query, page, clear = true) {
+    if (clear) clearGallery();
+
+    try {
+        const imagesData = await fetchData(query, page, perPage);
+        totalHits = imagesData.totalHits;
+        currentHits = imagesData.hits.length;
+
+        if (imagesData.hits.length === 0 && page === 1) {
+            clearGallery();
+            loadMoreBtn.style.display = "none";
+            endMessage.style.display = "none";
+            iziToast.show({
+                message: `Sorry, no images found for "${query}". Please try again!`,
+                messageColor: "#fafafb",
+                messageSize: "16px",
+                messageLineHeight: "20px",
+                backgroundColor: "#ef4040",
+                iconUrl: warningIcon,
+                progressBar: false,
+                position: "topRight",
+            });
+            return;
+        }
+
+        renderGallery(imagesData.hits, !clear);
+
+        toggleLoadMoreButton();
+
+        if (!clear) {
+            scrollToNextImages();
+        }
+    } catch (error) {
+        throw error;
+    }
+
+}
+
+
+function toggleLoadMoreButton() {
+    if (currentHits + (page - 1) * perPage >= totalHits) {
+        loadMoreBtn.style.display = "none";
+        endMessage.style.display = "block";
+    } else {
+        loadMoreBtn.style.display = "block";
+        endMessage.style.display = "none"; 
+    }
+}
+
+function scrollToNextImages() {
+    const galleryItem = document.querySelector(".gallery-item");
+    if (galleryItem) {
+        const itemHeight = galleryItem.getBoundingClientRect().height;
+        window.scrollBy({
+            top: itemHeight * 2,
+            behavior: "smooth",
+        });
+    }
+}

@@ -37,7 +37,7 @@ input[name='search-text']:focus {
     outline: none;
 }
 
-button {
+.submit-btn, .load-more-btn {
     border-radius: 8px;
     padding: 8px 16px;
     width: 91px;
@@ -55,9 +55,15 @@ button {
     border: none;
 }
 
-button:hover {
+.submit-btn,
+.load-more-btn:hover {
     background: #6c8cff;
 }
+ .load-more-btn {
+    margin: 32px auto;
+    display: block;
+    width: 125px;
+ }
 
 .gallery {
     display: flex;
