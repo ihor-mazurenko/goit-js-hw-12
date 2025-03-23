@@ -62,7 +62,7 @@ input[name='search-text']:focus {
  .load-more-btn {
     margin: 32px auto;
     display: block;
-    width: 125px;
+ width: 125px;
  }
 
 .gallery {

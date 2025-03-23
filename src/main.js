@@ -25,7 +25,6 @@ form.addEventListener("submit", async (event) => {
     if (!query) {
         clearGallery();
         loadMoreBtn.style.display = "none";
-        endMessage.style.display = "none";
 
         iziToast.show({
             title: "Caution",
@@ -57,18 +56,7 @@ form.addEventListener("submit", async (event) => {
     try {
         await loadImages(query, page);
     } catch (error) {
-            iziToast.show({              
-                message: "Something went wrong. Please try again later.",
-                messageColor: "#fafafb",
-                messageSize: "16px",
-                messageLineHeight: "20px",
-
-                backgroundColor: "#ef4040",
-                iconUrl: warningIcon,
-
-                progressBar: false,
-                position: "topRight",
-            });
+            showErrorToast();
         } finally {
             hideLoader();
             form.reset();
@@ -82,16 +70,7 @@ loadMoreBtn.addEventListener("click", async () => {
     try {
         await loadImages(query, page, false);
     } catch (error) {
-        iziToast.show({
-            message: "Something went wrong. Please try again later.",
-            messageColor: "#fafafb",
-            messageSize: "16px",
-            messageLineHeight: "20px",
-            backgroundColor: "#ef4040",
-            iconUrl: warningIcon,
-            progressBar: false,
-            position: "topRight",
-        });
+       showErrorToast();
     }
 });
 
@@ -106,22 +85,11 @@ async function loadImages(query, page, clear = true) {
         if (imagesData.hits.length === 0 && page === 1) {
             clearGallery();
             loadMoreBtn.style.display = "none";
-            endMessage.style.display = "none";
-            iziToast.show({
-                message: `Sorry, no images found for "${query}". Please try again!`,
-                messageColor: "#fafafb",
-                messageSize: "16px",
-                messageLineHeight: "20px",
-                backgroundColor: "#ef4040",
-                iconUrl: warningIcon,
-                progressBar: false,
-                position: "topRight",
-            });
+            showEndMessageToast();
             return;
         }
 
         renderGallery(imagesData.hits, !clear);
-
         toggleLoadMoreButton();
 
         if (!clear) {
@@ -137,10 +105,9 @@ async function loadImages(query, page, clear = true) {
 function toggleLoadMoreButton() {
     if (currentHits + (page - 1) * perPage >= totalHits) {
         loadMoreBtn.style.display = "none";
-        endMessage.style.display = "block";
+        showEndMessageToast();
     } else {
         loadMoreBtn.style.display = "block";
-        endMessage.style.display = "none"; 
     }
 }
 
@@ -154,3 +121,25 @@ function scrollToNextImages() {
         });
     }
 }
+
+function showErrorToast() {
+    iziToast.show({              
+        message: "Something went wrong. Please try again later.",
+        messageColor: "#fafafb",
+        backgroundColor: "#ef4040",
+        iconUrl: warningIcon,
+        progressBar: false,
+        position: "topRight",
+    });
+}
+
+function showEndMessageToast() {
+    iziToast.show({
+        message: "We're sorry, but you've reached the end of search results.",
+        messageColor: "#000000",
+        backgroundColor: "#cdced1",
+        progressBar: false,
+        position: "topRight",
+    });
+}
+
