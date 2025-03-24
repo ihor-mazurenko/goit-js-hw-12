@@ -26,23 +26,7 @@ form.addEventListener("submit", async (event) => {
         clearGallery();
         loadMoreBtn.style.display = "none";
 
-        iziToast.show({
-            title: "Caution",
-            titleColor: "#fff", 
-            titleSize: "16px",
-            titleLineHeight: "1.5",
-
-            message: `Not valid data`,
-            messageColor: "#fff",
-            messageSize: "16px",
-            messageLineHeight: "1.5",
-
-            backgroundColor: "#ffa000",
-            iconUrl: cautionIcon,
-
-            progressBar: false,
-            position: "topRight",
-        });
+        showWarningToast("Not valid data");
         return;
     }
 
@@ -85,7 +69,7 @@ async function loadImages(query, page, clear = true) {
         if (imagesData.hits.length === 0 && page === 1) {
             clearGallery();
             loadMoreBtn.style.display = "none";
-            showEndMessageToast();
+            showWarningToast("Sorry, there are no images matching your search query. Please try again!");
             return;
         }
 
@@ -121,6 +105,20 @@ function scrollToNextImages() {
         });
     }
 }
+
+function showWarningToast() {
+    iziToast.show({
+        title: "Caution",
+        titleColor: "#fff",
+        message: "Something went wrong. Please try again later.",
+        messageColor: "#fff",
+        backgroundColor: "#ffa000",
+        iconUrl: cautionIcon,
+        progressBar: false,
+        position: "topRight",
+    });
+}
+
 
 function showErrorToast() {
     iziToast.show({              
